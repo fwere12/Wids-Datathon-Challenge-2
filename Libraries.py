@@ -23,3 +23,10 @@ train_data.isnull().sum()
 #Summary statistics
 test_data.describe().T
 train_data.describe().T
+
+#Get the shape of the dataframe
+shape_train = train_data.shape
+print("Shape of train data:", shape_train)
+
+test_shape = test_data.shape
+print("Shape of test data:", test_shape)
