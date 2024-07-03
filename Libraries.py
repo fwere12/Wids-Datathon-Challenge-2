@@ -9,6 +9,21 @@ train_data = pd.read_csv("C:/Users/Administrator/Downloads/widsdatathon2024-chal
 test_data.head(5)
 train_data.head(5)
 
+#Chhecking for our data shape
+test_shape = test_data.shape
+print(test_shape)
+
+train_shape = train_data.shape
+print(train_shape)
+
+#Checking for missing values in our datasets
+test_data.isnull().sum()
+train_data.isnull().sum()
+
+#Summary statistics
+test_data.describe().T
+train_data.describe().T
+
 #Get the shape of the dataframe
 shape_train = train_data.shape
 print("Shape of train data:", shape_train)
