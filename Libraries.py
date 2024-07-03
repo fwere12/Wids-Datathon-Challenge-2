@@ -16,6 +16,9 @@ print(test_shape)
 train_shape = train_data.shape
 print(train_shape)
 
+#plot target distribution
+train_data['metastatic_diagnosis_period'].plot(kind='hist',title='Target Distribution')
+
 #Checking for missing values in our datasets
 test_data.isnull().sum()
 train_data.isnull().sum()
@@ -24,9 +27,24 @@ train_data.isnull().sum()
 test_data.describe().T
 train_data.describe().T
 
+<<<<<<< Updated upstream
 #Get the shape of the dataframe
 shape_train = train_data.shape
 print("Shape of train data:", shape_train)
 
 test_shape = test_data.shape
 print("Shape of test data:", test_shape)
+=======
+#Importing the rest of the libraries
+from sklearn.metrics import mean_squared_error,r2_score,mean_absolute_error,root_mean_squared_error
+from sklearn.model_selection import RepeatedStratifiedKFold,StratifiedKFold,KFold
+pd.set_option('display.max_columns', 185)
+pd.set_option('display.max_rows',185)
+# text preprocessing modules
+import re 
+from string import punctuation 
+import warnings
+warnings.filterwarnings("ignore")
+# seeding
+np.random.seed(123)
+>>>>>>> Stashed changes
