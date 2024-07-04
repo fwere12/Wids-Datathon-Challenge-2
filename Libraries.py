@@ -71,3 +71,29 @@ test = data[len(train):]
 features=['breast_cancer_diagnosis_code','patient_age','metastatic_cancer_diagnosis_code','patient_race',
    
    'payer_type','breast_cancer_diagnosis_desc','bmi','Division','patient_state','clust','metastatic_first_novel_treatment_type']
+
+#train model
+errors = []
+final_prediction=[]
+kf = StratifiedKFold(n_splits=15, random_state=42, shuffle=True)
+for train_index, test_index in kf.split(train,y):
+    X_train, X_test = train.loc[train_index], train.loc[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+    
+    model=CatBoostRegressor(ctr_target_border_count=10 ,use_best_model=True,verbose=False,eval_metric='RMSE')
+
+    model.fit(X_train[features], y_train,cat_features=['breast_cancer_diagnosis_code',
+             'patient_race','metastatic_cancer_diagnosis_code',
+   
+   'payer_type','breast_cancer_diagnosis_desc','Division','patient_state','metastatic_first_novel_treatment_type'],
+            
+            eval_set=(X_test[features], y_test),use_best_model=True,early_stopping_rounds=500)
+    
+    preds = model.predict(X_test[features])
+                             
+    test_preds=model.predict(test[features])
+                             
+    final_prediction.append(test_preds)
+    rmse = root_mean_squared_error(y_test, preds)
+    print("RMSE:", rmse)
+    errors.append(rmse)
