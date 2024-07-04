@@ -55,3 +55,19 @@ data=data.drop(columns=['patient_id','metastatic_diagnosis_period'],axis=1)
 #engineer some features
 data["clust"]=(data.metastatic_cancer_diagnosis_code.str.len()==4).astype("int")
 data["is_female"] = data.breast_cancer_diagnosis_desc.str.contains("female").astype("int")
+
+# Get the columns with object datatype
+object_cols = data.select_dtypes(include=['object']).columns
+
+# Convert the object columns to category dtype and fill missing values
+for col in object_cols:
+    data[col] = pd.Categorical(data[col].fillna("Missing"))
+
+#separate train and test data
+train = data[:len(train_data)]
+test = data[len(train):]
+
+#list of features
+features=['breast_cancer_diagnosis_code','patient_age','metastatic_cancer_diagnosis_code','patient_race',
+   
+   'payer_type','breast_cancer_diagnosis_desc','bmi','Division','patient_state','clust','metastatic_first_novel_treatment_type']
