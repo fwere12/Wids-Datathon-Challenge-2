@@ -98,3 +98,12 @@ for train_index, test_index in kf.split(train, y):
     rmse = mean_squared_error(y_test, preds, squared=False)  # Using mean_squared_error for RMSE
     print("RMSE:", rmse)
     errors.append(rmse)
+
+np.mean(errors)
+
+#stack final prediction and get it's mean
+prediction=np.mean(np.column_stack(final_prediction),axis=1)
+
+prediction
+
+
