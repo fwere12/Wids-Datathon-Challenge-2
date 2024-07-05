@@ -1,0 +1,100 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from catboost import CatBoostRegressor
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.model_selection import StratifiedKFold
+import warnings
+
+# Suppress warnings
+warnings.filterwarnings("ignore")
+
+# Seeding for reproducibility
+np.random.seed(123)
+
+# Reading in both datasets
+test_data = pd.read_csv("C:/Users/Administrator/Downloads/widsdatathon2024-challenge2/test.csv")
+train_data = pd.read_csv("C:/Users/Administrator/Downloads/widsdatathon2024-challenge2/train.csv")
+
+# Display first few rows of the datasets
+print(test_data.head(5))
+print(train_data.head(5))
+
+# Checking the shape of the datasets
+print("Test data shape:", test_data.shape)
+print("Train data shape:", train_data.shape)
+
+# Plotting target distribution
+train_data['metastatic_diagnosis_period'].plot(kind='hist', title='Target Distribution')
+plt.show()
+
+# Checking for missing values in the datasets
+print("Missing values in test data:\n", test_data.isnull().sum())
+print("Missing values in train data:\n", train_data.isnull().sum())
+
+# Summary statistics
+print(test_data.describe().T)
+print(train_data.describe().T)
+
+# Importing additional libraries and setting display options
+pd.set_option('display.max_columns', 185)
+pd.set_option('display.max_rows', 185)
+import re
+from string import punctuation
+
+# Extracting the target variable and combining datasets for feature engineering
+y = train_data['metastatic_diagnosis_period']
+data = pd.concat([train_data, test_data]).reset_index(drop=True).copy()
+data = data.drop(columns=['patient_id', 'metastatic_diagnosis_period'], axis=1)
+
+# Feature engineering
+data["clust"] = (data.metastatic_cancer_diagnosis_code.str.len() == 4).astype("int")
+data["is_female"] = data.breast_cancer_diagnosis_desc.str.contains("female").astype("int")
+
+# Convert object columns to categorical and fill missing values
+object_cols = data.select_dtypes(include=['object']).columns
+for col in object_cols:
+    data[col] = pd.Categorical(data[col].fillna("Missing"))
+
+# Separating train and test data
+train = data[:len(train_data)]
+test = data[len(train_data):]
+
+# List of features
+features = [
+    'breast_cancer_diagnosis_code', 'patient_age', 'metastatic_cancer_diagnosis_code', 
+    'patient_race', 'payer_type', 'breast_cancer_diagnosis_desc', 'bmi', 
+    'Division', 'patient_state', 'clust', 'metastatic_first_novel_treatment_type'
+]
+
+# Initialize lists for storing errors and final predictions
+errors = []
+final_prediction = []
+
+# Stratified K-Fold cross-validation
+kf = StratifiedKFold(n_splits=15, random_state=42, shuffle=True)
+for train_index, test_index in kf.split(train, y):
+    X_train, X_test = train.iloc[train_index], train.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+    
+    model = CatBoostRegressor(ctr_target_border_count=10, verbose=False, eval_metric='RMSE')
+    
+    model.fit(
+        X_train[features], y_train,
+        cat_features=[
+            'breast_cancer_diagnosis_code', 'patient_race', 'metastatic_cancer_diagnosis_code',
+            'payer_type', 'breast_cancer_diagnosis_desc', 'Division', 
+            'patient_state', 'metastatic_first_novel_treatment_type'
+        ],
+        eval_set=(X_test[features], y_test),
+        early_stopping_rounds=500
+    )
+    
+    preds = model.predict(X_test[features])
+    test_preds = model.predict(test[features])
+    
+    final_prediction.append(test_preds)
+    rmse = mean_squared_error(y_test, preds, squared=False)  # Using mean_squared_error for RMSE
+    print("RMSE:", rmse)
+    errors.append(rmse)
