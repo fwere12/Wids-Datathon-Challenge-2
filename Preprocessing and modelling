@@ -106,4 +106,11 @@ prediction=np.mean(np.column_stack(final_prediction),axis=1)
 
 prediction
 
+#Sample submission
+ss = pd.read_csv("C:/Users/Administrator/Desktop/solution_template")
+ss.head()
 
+ss['metastatic_diagnosis_period']= prediction
+
+#generate submission file
+ss.to_csv('submission.csv', index=False)
